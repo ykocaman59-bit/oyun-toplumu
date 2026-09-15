@@ -1,0 +1,48 @@
+name: Build Oyun Toplulugu APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodu indir
+        uses: actions/checkout@v4
+
+      - name: Node.js kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Java kur
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Android kurulumu
+        uses: android-actions/setup-android@v3
+
+      - name: Paketleri kur
+        run: npm install
+
+      - name: Web uygulamasını oluştur
+        run: npm run build
+
+      - name: Android projesini oluştur
+        run: npx cap add android
+
+      - name: Android ile senkronize et
+        run: npx cap sync android
+
+      - name: APK oluştur
+        working-directory: android
+        run: ./gradlew assembleDebug
+
+      - name: APK'yı yükle
+        uses: actions/upload-artifact@v4
+        with:
+          name: oyun-toplulugu-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
